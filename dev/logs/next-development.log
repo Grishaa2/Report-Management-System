@@ -1,0 +1,5 @@
+[00:00:00.661] Server  LOG     
+[00:00:00.662] Server  LOG        We detected TypeScript in your project and created a tsconfig.json file for you.
+[00:00:00.798] Server  LOG      ✓ Ready in 511ms
+[00:00:15.557] Server  WARN     ⚠ Cross origin request detected from 192.168.1.4 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
