@@ -107,7 +107,7 @@ export function DataUnderstandingAssistant({ data, headers, reportId }) {
     setIsAsking(true);
 
     try {
-      const response = answerQuestion(question, data, headers, stats, trends, anomalies);
+      const response = answerQuestion(question, data, headers, stats, trends, anomalies, dataType);
       setAnswer(response);
     } catch (error) {
       console.error("Error answering question:", error);
@@ -122,7 +122,7 @@ export function DataUnderstandingAssistant({ data, headers, reportId }) {
     } finally {
       setIsAsking(false);
     }
-  }, [question, data, headers, stats, trends, anomalies]);
+  }, [question, data, headers, stats, trends, anomalies, dataType]);
 
   const getTrendIcon = (direction) => {
     switch (direction) {

@@ -1,0 +1,29 @@
+Your Vercel deployment has CHANGED!
+
+OLD URL (no longer works):
+https://report-management-system-doni-2uqb6kpom.vercel.app
+
+NEW URL (current deployment):
+https://report-management-system-doni-nj0kawkfk.vercel.app
+
+=== REQUIRED UPDATES ===
+
+1. VERCEL DASHBOARD - Update NEXTAUTH_URL:
+   Go to: https://vercel.com/grishaa2/report-management-system-doni/settings/environment-variables
+   Set: NEXTAUTH_URL = https://report-management-system-doni-nj0kawkfk.vercel.app
+
+2. GOOGLE OAUTH - Update Redirect URI:
+   Go to: https://console.cloud.google.com/apis/credentials
+   Add: https://report-management-system-doni-nj0kawkfk.vercel.app/api/auth/callback/google
+
+3. GITHUB OAUTH - Update Callback URL:
+   Go to: https://github.com/settings/developers
+   Set: https://report-management-system-doni-nj0kawkfk.vercel.app/api/auth/callback/github
+
+4. REDEPLOY AGAIN after making these changes!
+
+=== VERIFICATION ===
+After updating, verify these match exactly:
+- Vercel NEXTAUTH_URL: https://report-management-system-doni-nj0kawkfk.vercel.app
+- Google Redirect URI: https://report-management-system-doni-nj0kawkfk.vercel.app/api/auth/callback/google
+- GitHub Callback URL: https://report-management-system-doni-nj0kawkfk.vercel.app/api/auth/callback/github
