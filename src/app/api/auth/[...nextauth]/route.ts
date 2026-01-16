@@ -6,16 +6,36 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+    }
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id?: string;
+    email?: string;
+    name?: string;
+    accessToken?: string;
+    provider?: string;
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60,
   },
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: '/login',
-    error: '/login',
   },
   providers: [
     GoogleProvider({
@@ -45,9 +65,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email
-          }
+          where: { email: credentials.email }
         });
 
         if (!user) {
@@ -76,57 +94,39 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user, account, trigger, session }) {
-      // Initial sign in
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
+        token.email = user.email as string;
+        token.name = user.name as string;
       }
-
-      // If account exists (OAuth sign in), update token
       if (account) {
         token.accessToken = account.access_token;
         token.provider = account.provider;
       }
-
-      // Update token when session is updated
-      if (trigger === "update" && session) {
-        token.name = session.name;
-      }
-
       return token;
     },
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id || token.sub;
-        session.user.email = token.email;
-        session.user.name = token.name;
+      if (session.user) {
+        session.user.id = token.sub as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
       }
       return session;
     },
-    async signIn({ user, account, profile }) {
-      // Allow sign in
-      return true;
-    },
     async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allows callback URLs on the same origin
       else if (new URL(url).origin === baseUrl) return url;
       return `${baseUrl}/dashboard`;
     }
   },
   events: {
     async createUser({ user }) {
-      console.log('New user created via OAuth:', user.email);
+      console.log('New user created:', user.email);
     },
-    async signIn({ user, account, isNewUser }) {
+    async signIn({ user, account }) {
       console.log(`User signed in via ${account?.provider}:`, user.email);
     },
-    async signOut({ token }) {
-      console.log('User signed out');
-    }
   },
   debug: process.env.NODE_ENV === 'development',
 }
