@@ -1151,8 +1151,8 @@ export function answerQuestion(question, data, headers, stats, trends, anomalies
   }
 
   if (questionLower.includes('recommend') || questionLower.includes('suggest') || questionLower.includes('should i') || questionLower.includes('action') || questionLower.includes('what to do') || questionLower.includes('advice') || questionLower.includes('next step')) {
-    const warnings = generateWhatToWatch(data, headers, stats, trends, anomalies, dataType);
-    const findings = generateKeyFindings(data, headers, stats, trends, anomalies, dataType);
+    const warnings = generateWhatToWatch(stats, trends, anomalies, domainInfo);
+    const findings = generateKeyFindings(data, headers, stats, trends, anomalies, domainInfo);
     
     const recommendations = [];
     const verb = domainInfo.verbs[0] || 'measured';
