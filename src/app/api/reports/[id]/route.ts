@@ -1,7 +1,8 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-export const dynamic = 'force-dynamic';
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
