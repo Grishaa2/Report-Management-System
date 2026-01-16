@@ -10,18 +10,28 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: '/login',
+    error: '/login',
+  },
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
     GitHubProvider({
       clientId: process.env.GITHUB_CLIENT_ID || "",
       clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
-      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: "credentials",
@@ -41,11 +51,11 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
-          throw new Error('User not found');
+          throw new Error('No account found with this email');
         }
 
         if (!user.password) {
-          throw new Error('User not found');
+          throw new Error('Please sign in with your Google or GitHub account');
         }
 
         const isCorrectPassword = await bcrypt.compare(
@@ -54,7 +64,7 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isCorrectPassword) {
-          throw new Error('Wrong password');
+          throw new Error('Incorrect password');
         }
 
         return {
@@ -65,24 +75,60 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
-  pages: {
-    signIn: '/login',
-  },
   callbacks: {
-    async jwt({ token, user }) {
-      // Persist the user id to the token right after signin
+    async jwt({ token, user, account, trigger, session }) {
+      // Initial sign in
       if (user) {
         token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
       }
+
+      // If account exists (OAuth sign in), update token
+      if (account) {
+        token.accessToken = account.access_token;
+        token.provider = account.provider;
+      }
+
+      // Update token when session is updated
+      if (trigger === "update" && session) {
+        token.name = session.name;
+      }
+
       return token;
     },
     async session({ session, token }) {
-      if (session?.user) {
-        (session.user as any).id = token.sub || token.id;
+      if (token && session.user) {
+        session.user.id = token.id || token.sub;
+        session.user.email = token.email;
+        session.user.name = token.name;
       }
       return session;
+    },
+    async signIn({ user, account, profile }) {
+      // Allow sign in
+      return true;
+    },
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url;
+      return `${baseUrl}/dashboard`;
     }
-  }
+  },
+  events: {
+    async createUser({ user }) {
+      console.log('New user created via OAuth:', user.email);
+    },
+    async signIn({ user, account, isNewUser }) {
+      console.log(`User signed in via ${account?.provider}:`, user.email);
+    },
+    async signOut({ token }) {
+      console.log('User signed out');
+    }
+  },
+  debug: process.env.NODE_ENV === 'development',
 }
 
 const handler = NextAuth(authOptions)
