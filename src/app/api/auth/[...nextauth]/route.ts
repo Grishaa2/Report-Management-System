@@ -6,6 +6,8 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
+export const dynamic = 'force-dynamic';
+
 declare module "next-auth" {
   interface Session {
     user: {
